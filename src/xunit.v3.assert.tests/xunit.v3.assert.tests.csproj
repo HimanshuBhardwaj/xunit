@@ -24,7 +24,6 @@
     <Compile Include="..\common\Guard.cs" LinkBase="Common" />
     <Compile Include="..\common\Json.cs" LinkBase="Common" />
     <ProjectReference Include="..\xunit.v3.execution\xunit.v3.execution.csproj" />
-    <ProjectReference Include="..\xunit.v3.runner.utility\xunit.v3.runner.utility.csproj" />
   </ItemGroup>
 
 </Project>

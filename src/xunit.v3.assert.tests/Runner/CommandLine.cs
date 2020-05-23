@@ -19,8 +19,10 @@ namespace Xunit.ConsoleClient
             for (var i = args.Length - 1; i >= 0; i--)
                 arguments.Push(args[i]);
 
-            Project = Parse(fileExists);
+            Parse(fileExists);
         }
+
+        public string ConfigFileName { get; protected set; }
 
         public bool Debug { get; protected set; }
 
@@ -40,53 +42,35 @@ namespace Xunit.ConsoleClient
 
         public bool Pause { get; protected set; }
 
-        public XunitProject Project { get; protected set; }
-
         public bool? ParallelizeTestCollections { get; set; }
-
-        public bool Serialize { get; protected set; }
 
         public bool StopOnFail { get; protected set; }
 
         public bool Wait { get; protected set; }
 
-        public IRunnerReporter ChooseReporter(IReadOnlyList<IRunnerReporter> reporters)
-        {
-            var result = default(IRunnerReporter);
+        //public IRunnerReporter ChooseReporter(IReadOnlyList<IRunnerReporter> reporters)
+        //{
+        //    var result = default(IRunnerReporter);
 
-            foreach (var unknownOption in unknownOptions)
-            {
-                var reporter = reporters.FirstOrDefault(r => r.RunnerSwitch == unknownOption) ?? throw new ArgumentException($"unknown option: -{unknownOption}");
+        //    foreach (var unknownOption in unknownOptions)
+        //    {
+        //        var reporter = reporters.FirstOrDefault(r => r.RunnerSwitch == unknownOption) ?? throw new ArgumentException($"unknown option: -{unknownOption}");
 
-                if (result != null)
-                    throw new ArgumentException("only one reporter is allowed");
+        //        if (result != null)
+        //            throw new ArgumentException("only one reporter is allowed");
 
-                result = reporter;
-            }
+        //        result = reporter;
+        //    }
 
-            if (!NoAutoReporters)
-                result = reporters.FirstOrDefault(r => r.IsEnvironmentallyEnabled) ?? result;
+        //    if (!NoAutoReporters)
+        //        result = reporters.FirstOrDefault(r => r.IsEnvironmentallyEnabled) ?? result;
 
-            return result ?? new DefaultRunnerReporterWithTypes();
-        }
+        //    return result ?? new DefaultRunnerReporterWithTypes();
+        //}
 
         protected virtual string GetFullPath(string fileName)
         {
             return Path.GetFullPath(fileName);
-        }
-
-        XunitProject GetProjectFile(List<Tuple<string, string>> assemblies)
-        {
-            var result = new XunitProject();
-
-            foreach (var assembly in assemblies)
-                result.Add(new XunitProjectAssembly
-                {
-                    AssemblyFilename = GetFullPath(assembly.Item1),
-                    ConfigFilename = assembly.Item2 != null ? GetFullPath(assembly.Item2) : null,
-                });
-
-            return result;
         }
 
         static void GuardNoOptionValue(KeyValuePair<string, string> option)
@@ -96,32 +80,21 @@ namespace Xunit.ConsoleClient
         }
 
         static bool IsConfigFile(string fileName)
-        {
-            return fileName.EndsWith(".config", StringComparison.OrdinalIgnoreCase)
-                || fileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase);
-        }
+            => fileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase);
 
         public static CommandLine Parse(params string[] args)
             => new CommandLine(args);
 
-        protected XunitProject Parse(Predicate<string> fileExists)
+        protected void Parse(Predicate<string> fileExists)
         {
-            var assemblies = new List<Tuple<string, string>>();
-
-            string configFile = default;
-
             if (arguments.Count > 0 && !arguments.Peek().StartsWith("-", StringComparison.Ordinal))
             {
-                configFile = arguments.Pop();
-                if (!IsConfigFile(configFile))
-                    throw new ArgumentException($"expecting config file, got: {configFile}");
-                if (!fileExists(configFile))
-                    throw new ArgumentException($"config file not found: {configFile}");
+                ConfigFileName = arguments.Pop();
+                if (!IsConfigFile(ConfigFileName))
+                    throw new ArgumentException($"expecting config file, got: {ConfigFileName}");
+                if (!fileExists(ConfigFileName))
+                    throw new ArgumentException($"config file not found: {ConfigFileName}");
             }
-
-            assemblies.Add(Tuple.Create(Assembly.GetEntryAssembly().GetLocalCodeBase(), configFile));
-
-            var project = GetProjectFile(assemblies);
 
             while (arguments.Count > 0)
             {
@@ -168,11 +141,6 @@ namespace Xunit.ConsoleClient
                 {
                     GuardNoOptionValue(option);
                     Debug = true;
-                }
-                else if (optionName == "serialize")
-                {
-                    GuardNoOptionValue(option);
-                    Serialize = true;
                 }
                 else if (optionName == "wait")
                 {
@@ -232,12 +200,7 @@ namespace Xunit.ConsoleClient
                             break;
                     }
                 }
-                else if (optionName == "noshadow")
-                {
-                    GuardNoOptionValue(option);
-                    foreach (var assembly in project.Assemblies)
-                        assembly.Configuration.ShadowCopy = false;
-                }
+                // TODO: Filters are part of xunit.runner.utility, need to bring that across
                 else if (optionName == "trait")
                 {
                     if (option.Value == null)
@@ -249,7 +212,7 @@ namespace Xunit.ConsoleClient
 
                     var name = pieces[0];
                     var value = pieces[1];
-                    project.Filters.IncludedTraits.Add(name, value);
+                    //project.Filters.IncludedTraits.Add(name, value);
                 }
                 else if (optionName == "notrait")
                 {
@@ -262,52 +225,54 @@ namespace Xunit.ConsoleClient
 
                     var name = pieces[0];
                     var value = pieces[1];
-                    project.Filters.ExcludedTraits.Add(name, value);
+                    //project.Filters.ExcludedTraits.Add(name, value);
                 }
                 else if (optionName == "class")
                 {
                     if (option.Value == null)
                         throw new ArgumentException("missing argument for -class");
 
-                    project.Filters.IncludedClasses.Add(option.Value);
+                    //project.Filters.IncludedClasses.Add(option.Value);
                 }
                 else if (optionName == "noclass")
                 {
                     if (option.Value == null)
                         throw new ArgumentException("missing argument for -noclass");
 
-                    project.Filters.ExcludedClasses.Add(option.Value);
+                    //project.Filters.ExcludedClasses.Add(option.Value);
                 }
                 else if (optionName == "method")
                 {
                     if (option.Value == null)
                         throw new ArgumentException("missing argument for -method");
 
-                    project.Filters.IncludedMethods.Add(option.Value);
+                    //project.Filters.IncludedMethods.Add(option.Value);
                 }
                 else if (optionName == "nomethod")
                 {
                     if (option.Value == null)
                         throw new ArgumentException("missing argument for -nomethod");
 
-                    project.Filters.ExcludedMethods.Add(option.Value);
+                    //project.Filters.ExcludedMethods.Add(option.Value);
                 }
                 else if (optionName == "namespace")
                 {
                     if (option.Value == null)
                         throw new ArgumentException("missing argument for -namespace");
 
-                    project.Filters.IncludedNamespaces.Add(option.Value);
+                    //project.Filters.IncludedNamespaces.Add(option.Value);
                 }
                 else if (optionName == "nonamespace")
                 {
                     if (option.Value == null)
                         throw new ArgumentException("missing argument for -nonamespace");
 
-                    project.Filters.ExcludedNamespaces.Add(option.Value);
+                    //project.Filters.ExcludedNamespaces.Add(option.Value);
                 }
                 else
                 {
+                    // TODO: Support output transformations
+
                     // Might be a result output file...
                     if (TransformFactory.AvailableTransforms.Any(t => t.CommandLine.Equals(optionName, StringComparison.OrdinalIgnoreCase)))
                     {
@@ -316,7 +281,7 @@ namespace Xunit.ConsoleClient
 
                         EnsurePathExists(option.Value);
 
-                        project.Output.Add(optionName, option.Value);
+                        //project.Output.Add(optionName, option.Value);
                     }
                     // ...or it might be a reporter (we won't know until later)
                     else
@@ -326,8 +291,6 @@ namespace Xunit.ConsoleClient
                     }
                 }
             }
-
-            return project;
         }
 
         static KeyValuePair<string, string> PopOption(Stack<string> arguments)

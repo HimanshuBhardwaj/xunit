@@ -26,7 +26,7 @@ namespace Xunit
                       string assemblyFileName,
                       string configFileName = null,
                       IMessageSink diagnosticMessageSink = null)
-            : base( sourceInformationProvider, assemblyFileName, configFileName, diagnosticMessageSink)
+            : base(sourceInformationProvider, assemblyFileName, configFileName, diagnosticMessageSink)
         {
             var an = Assembly.Load(new AssemblyName { Name = Path.GetFileNameWithoutExtension(assemblyFileName) }).GetName();
             var assemblyName = new AssemblyName { Name = an.Name, Version = an.Version };

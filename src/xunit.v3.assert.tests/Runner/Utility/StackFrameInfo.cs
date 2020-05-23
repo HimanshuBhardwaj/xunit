@@ -2,11 +2,12 @@ using System;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Xunit.Abstractions;
+using Xunit.Sdk;
 
 namespace Xunit
 {
     /// <summary>
-    /// TODO: WE COPIED THIS FROM RUNNER UTILITY, WHERE DOES IT REALLY BELONG?
+    /// Represents the top of a stack frame, typically taken from an exception or failure information.
     /// </summary>
     public struct StackFrameInfo
     {

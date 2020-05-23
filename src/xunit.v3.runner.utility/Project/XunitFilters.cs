@@ -21,6 +21,7 @@ namespace Xunit
         ChangeTrackingHashSet<string> excludedMethods;
         List<Regex> excludeMethodRegexFilters;
         HashSet<string> excludeMethodStandardFilters;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="XunitFilters"/> class.
         /// </summary>

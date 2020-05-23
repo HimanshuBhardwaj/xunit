@@ -53,10 +53,10 @@ namespace Xunit.ConsoleClient
         public static List<Transform> AvailableTransforms
             => instance.availableTransforms.Values.ToList();
 
-        public static List<Action<XElement>> GetXmlTransformers(XunitProject project)
-            => project.Output
-                      .Select(output => new Action<XElement>(xml => instance.availableTransforms[output.Key].OutputHandler(xml, output.Value)))
-                      .ToList();
+        //public static List<Action<XElement>> GetXmlTransformers(XunitProject project)
+        //    => project.Output
+        //              .Select(output => new Action<XElement>(xml => instance.availableTransforms[output.Key].OutputHandler(xml, output.Value)))
+        //              .ToList();
 
         static void Handler_DirectWrite(XElement xml, string outputFileName)
         {
